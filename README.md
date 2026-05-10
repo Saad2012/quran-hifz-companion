@@ -24,6 +24,7 @@
 - دليل استخدام داخلي داخل التطبيق.
 - بيانات تجريبية جاهزة وميزة `import/export`.
 - تسجيل دخول بالبريد الإلكتروني وكلمة المرور.
+- تسجيل دخول عبر Google عند تفعيل المزود في Supabase.
 - استعادة كلمة المرور وتعيين كلمة جديدة من داخل التطبيق.
 - مزامنة سحابية تلقائية مع الاحتفاظ بالنسخة المحلية كخط دفاع أول.
 - استعادة المشروع من أي جهاز عند توفر الحساب نفسه.
@@ -126,6 +127,14 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 `supabase/migrations/20260510_auth_and_sync.sql`
 
 مطبقة على مشروع Supabase المستهدف.
+
+ولتفعيل Google Login فعليًا:
+
+- فعّل `Google` داخل `Supabase Auth > Providers`
+- أنشئ OAuth Client من نوع `Web application` في Google Cloud
+- أضف `Authorized JavaScript origins` لعناوين التطبيق
+- وأضف Supabase callback URL الخاص بمشروعك إلى `Authorized redirect URIs`
+- ثم ضع `Client ID` و`Client Secret` داخل إعداد مزود Google في Supabase
 
 وإذا أردت أفضل توافق مع رسائل استعادة كلمة المرور في Supabase، اضبط قالب
 `Reset Password` ليعبر عبر المسار:

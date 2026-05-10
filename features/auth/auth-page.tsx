@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LoaderCircle, LockKeyhole, Mail } from "lucide-react";
 import { toast } from "sonner";
 
+import { GoogleIcon } from "@/components/icons/google-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ export function AuthPage({ initialMessage }: AuthPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const submit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -83,12 +85,70 @@ export function AuthPage({ initialMessage }: AuthPageProps) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    setIsGoogleSubmitting(true);
+
+    try {
+      const supabase = getBrowserSupabaseClient();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      callbackUrl.searchParams.set("next", "/");
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "تعذر بدء تسجيل الدخول عبر Google.";
+      toast.error(message);
+      setIsGoogleSubmitting(false);
+    }
+  };
+
   return (
     <AuthShell
       cardTitle="تسجيل الدخول"
       cardDescription="أدخل بريدك وكلمة المرور. يمكنك أيضًا إنشاء حساب جديد من نفس المكان."
       message={initialMessage}
     >
+      <div className="space-y-4">
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-12 w-full rounded-2xl border border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-[var(--surface-soft)]"
+          onClick={() => void signInWithGoogle()}
+          disabled={isGoogleSubmitting || isSubmitting}
+        >
+          {isGoogleSubmitting ? (
+            <>
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+              جاري التحويل إلى Google
+            </>
+          ) : (
+            <>
+              <GoogleIcon className="h-4 w-4" />
+              الدخول أو إنشاء حساب عبر Google
+            </>
+          )}
+        </Button>
+
+        <p className="text-xs leading-6 text-[var(--muted-foreground)]">
+          يعمل هذا الزر بعد تفعيل مزود Google داخل مشروع Supabase وربطه ببيانات Google Cloud.
+        </p>
+
+        <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
+          <span className="h-px flex-1 bg-[var(--border)]" />
+          أو أكمل بالبريد الإلكتروني
+          <span className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+      </div>
+
       <Tabs
         defaultValue="signin"
         value={mode}
@@ -195,6 +255,9 @@ export function AuthPage({ initialMessage }: AuthPageProps) {
           <p className="text-xs leading-6 text-[var(--muted-foreground)]">
             قد يرسل Supabase رسالة تفعيل إلى بريدك قبل تفعيل الجلسة نهائيًا، بحسب إعدادات
             المشروع.
+          </p>
+          <p className="text-xs leading-6 text-[var(--muted-foreground)]">
+            ويمكنك بدل ذلك الدخول مباشرة عبر Google من الزر الموجود أعلى البطاقة.
           </p>
         </TabsContent>
       </Tabs>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cairo, IBM_Plex_Mono } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "./globals.css";
 import { Providers } from "./providers";
@@ -35,6 +36,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-[var(--background)] font-sans text-[var(--foreground)]">
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   );

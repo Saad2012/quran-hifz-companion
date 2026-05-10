@@ -68,7 +68,14 @@ Thumbs.db
 # Deploy/platform
 .vercel/
 .playwright-mcp/
-.serena/
+.serena/*
+!.serena/project.yml
+!.serena/memories/
+!.serena/memories/**
+.serena/cache/
+.serena/logs/
+.serena/project.local.yml
+.serena/.gitignore
 
 # Generated TypeScript and local agent files
 *.tsbuildinfo

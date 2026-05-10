@@ -126,6 +126,14 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 
 مطبقة على مشروع Supabase المستهدف.
 
+الحالة الحالية لهذا المشروع:
+
+- المستودع متصل بـ GitHub
+- مشروع Vercel متصل بالمستودع
+- متغيرات البيئة مضبوطة على `Development` و`Preview` و`Production`
+- رابط الإنتاج الحالي:
+  - [https://quran-hifz-companion.vercel.app](https://quran-hifz-companion.vercel.app)
+
 ## ملاحظات الأمان
 
 - لا تضع أي مفاتيح أو أسرار حقيقية داخل المستودع.

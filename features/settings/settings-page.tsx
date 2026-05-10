@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Download, RefreshCcw, Upload } from "lucide-react";
+import { Cloud, Download, LogIn, LogOut, RefreshCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -12,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useAuthSession } from "@/hooks/use-supabase-auth";
 import { useHifzData } from "@/hooks/use-hifz-data";
 import { persistedAppDataSchema, settingsSchema } from "@/lib/schemas";
 import { UserSettings } from "@/types";
@@ -27,7 +29,8 @@ const AVAILABLE_CHARTS = [
 ];
 
 export function SettingsPage() {
-  const { data, updateSettings, importData, resetToSeed } = useHifzData();
+  const { cloudSync, data, updateSettings, importData, resetToSeed, syncNow } = useHifzData();
+  const { isConfigured, user, signOut } = useAuthSession();
   const fileRef = useRef<HTMLInputElement>(null);
   const form = useForm<UserSettings>({
     resolver: zodResolver(settingsSchema),
@@ -251,8 +254,79 @@ export function SettingsPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle>الحساب والمزامنة</CardTitle>
+              <CardDescription>
+                تسجيل الدخول يفعّل النسخة السحابية ويحفظ مشروعك بين أجهزتك بدون فقدان النسخة
+                المحلية.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[22px] bg-[var(--surface-soft)] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium">
+                      {user?.email ?? (isConfigured ? "غير مسجّل" : "الوضع المحلي فقط")}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--muted-foreground)]">
+                      {cloudSync.message}
+                    </p>
+                  </div>
+                  <Cloud className="mt-1 h-5 w-5 text-[var(--accent-strong)]" />
+                </div>
+                {cloudSync.lastSyncedAt ? (
+                  <p className="mt-3 text-xs text-[var(--muted-foreground)]">
+                    آخر مزامنة: {new Date(cloudSync.lastSyncedAt).toLocaleString("ar-SA")}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {isConfigured ? (
+                  user ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          void syncNow().then((success) => {
+                            if (success) {
+                              toast.success("تمت مزامنة بياناتك بنجاح.");
+                            } else {
+                              toast.error("تعذر إكمال المزامنة الآن.");
+                            }
+                          });
+                        }}
+                        disabled={cloudSync.isSyncing}
+                      >
+                        <Cloud className="h-4 w-4" />
+                        {cloudSync.isSyncing ? "جاري المزامنة..." : "مزامنة الآن"}
+                      </Button>
+                      <Button type="button" variant="ghost" onClick={() => void signOut()}>
+                        <LogOut className="h-4 w-4" />
+                        تسجيل الخروج
+                      </Button>
+                    </>
+                  ) : (
+                    <Button asChild type="button">
+                      <Link href="/login">
+                        <LogIn className="h-4 w-4" />
+                        تسجيل الدخول
+                      </Link>
+                    </Button>
+                  )
+                ) : (
+                  <div className="text-sm leading-7 text-[var(--muted-foreground)]">
+                    أضف متغيرات Supabase في بيئة التشغيل لتفعيل الدخول والمزامنة السحابية.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>البيانات المحلية</CardTitle>
-              <CardDescription>نسخة أولى local-first مع قابلية نقل مستقبلية لأي backend.</CardDescription>
+              <CardDescription>النسخة المحلية تبقى الأساس، ويمكن تصديرها أو استيرادها حتى مع وجود مزامنة سحابية.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-3">

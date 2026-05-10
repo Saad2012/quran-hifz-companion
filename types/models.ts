@@ -38,6 +38,7 @@ export type ReviewTaskCategory =
   | "critical"
   | "overdue";
 export type AlertTone = "info" | "warning" | "success";
+export type CloudSyncStatus = "local-only" | "auth-required" | "syncing" | "synced" | "error";
 
 export interface UserSettings {
   appLanguage: AppLanguage;
@@ -440,6 +441,22 @@ export interface PersistedAppData {
   tajweedNotes: TajweedNote[];
 }
 
+export interface AuthUserSummary {
+  id: string;
+  email: string;
+  lastSignInAt?: string;
+}
+
+export interface CloudSyncState {
+  isConfigured: boolean;
+  isAuthenticated: boolean;
+  isSyncing: boolean;
+  status: CloudSyncStatus;
+  message: string;
+  lastSyncedAt?: string;
+  error?: string;
+}
+
 export interface DerivedAppData {
   pageStates: PageState[];
   reviewEngine: ReviewEngineOutput;
@@ -454,6 +471,7 @@ export interface AppStoreValue {
   data: PersistedAppData;
   derived: DerivedAppData;
   isHydrated: boolean;
+  cloudSync: CloudSyncState;
   addSession: (session: Session) => void;
   updateSession: (session: Session) => void;
   removeSession: (id: string) => void;
@@ -469,4 +487,5 @@ export interface AppStoreValue {
   updateSettings: (settings: UserSettings) => void;
   importData: (payload: PersistedAppData) => void;
   resetToSeed: () => void;
+  syncNow: () => Promise<boolean>;
 }

@@ -47,6 +47,7 @@ yarn-error.log*
 *.sqlite3
 *.sql
 *.dump
+!supabase/migrations/*.sql
 
 # Temporary files
 tmp/
@@ -82,3 +83,5 @@ Thumbs.db
 next-env.d.ts
 AGENTS.md
 CLAUDE.md
+
+.vercel

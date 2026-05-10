@@ -7,8 +7,11 @@ import {
   BookMarked,
   CalendarDays,
   CircleHelp,
+  Cloud,
+  CloudOff,
   ClipboardCheck,
   LayoutDashboard,
+  LogOut,
   ScrollText,
   Settings2,
   ShieldAlert,
@@ -17,6 +20,8 @@ import {
   Waves,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { useAuthSession } from "@/hooks/use-supabase-auth";
 import { useHifzData } from "@/hooks/use-hifz-data";
 import { cn } from "@/utils/cn";
 import { formatDateLabel } from "@/utils/date";
@@ -38,7 +43,8 @@ const NAV_ITEMS = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { derived } = useHifzData();
+  const { cloudSync, derived } = useHifzData();
+  const { isConfigured, user, signOut } = useAuthSession();
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -82,6 +88,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="mt-2 text-sm text-[var(--muted-foreground)]">
               صفحة مقترحة لمراجعة اليوم مع وضع {derived.reviewEngine.recommendedMode === "light" ? "خفيف" : derived.reviewEngine.recommendedMode === "normal" ? "عادي" : "موسع"}.
             </p>
+          </div>
+          <div className="mt-4 rounded-[26px] border border-[var(--border)] bg-[var(--card)] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-[var(--foreground)]">الحساب والمزامنة</p>
+                <p className="mt-2 text-sm leading-7 text-[var(--muted-foreground)]">
+                  {user?.email ?? (isConfigured ? "لم يتم تسجيل الدخول بعد." : "الوضع المحلي فقط.")}
+                </p>
+              </div>
+              {cloudSync.isConfigured && cloudSync.isAuthenticated ? (
+                <Cloud className="mt-1 h-4 w-4 text-[var(--accent-strong)]" />
+              ) : (
+                <CloudOff className="mt-1 h-4 w-4 text-[var(--muted-foreground)]" />
+              )}
+            </div>
+            <p className="mt-3 text-xs leading-6 text-[var(--muted-foreground)]">
+              {cloudSync.message}
+            </p>
+            <div className="mt-4 flex gap-2">
+              {cloudSync.isConfigured ? (
+                user ? (
+                  <Button type="button" variant="secondary" size="sm" onClick={() => void signOut()}>
+                    <LogOut className="h-4 w-4" />
+                    خروج
+                  </Button>
+                ) : (
+                  <Button asChild type="button" variant="secondary" size="sm">
+                    <Link href="/login">دخول</Link>
+                  </Button>
+                )
+              ) : (
+                <Button asChild type="button" variant="secondary" size="sm">
+                  <Link href="/settings">تفاصيل أكثر</Link>
+                </Button>
+              )}
+            </div>
           </div>
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -9,15 +10,13 @@ import { getSupabaseEnv } from "@/lib/supabase/env";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
-  const errorDescription = requestUrl.searchParams.get("error_description");
-  const nextPath = getSafeAuthRedirectPath(requestUrl.searchParams.get("next"), requestUrl.origin);
-
-  if (errorDescription) {
-    return NextResponse.redirect(
-      new URL(`/login?message=${encodeURIComponent(errorDescription)}`, requestUrl.origin),
-    );
-  }
+  const tokenHash = requestUrl.searchParams.get("token_hash");
+  const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
+  const nextPath = getSafeAuthRedirectPath(
+    requestUrl.searchParams.get("next"),
+    requestUrl.origin,
+    type === "recovery" ? "/reset-password" : "/",
+  );
 
   const cookieStore = await cookies();
   const { url, publishableKey } = getSupabaseEnv();
@@ -37,15 +36,26 @@ export async function GET(request: Request) {
     },
   });
 
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type,
+    });
 
-    if (error) {
-      return NextResponse.redirect(
-        new URL(`/login?message=${encodeURIComponent(error.message)}`, requestUrl.origin),
-      );
+    if (!error) {
+      return response;
     }
+
+    return NextResponse.redirect(
+      new URL(`/login?message=${encodeURIComponent(error.message)}`, requestUrl.origin),
+    );
   }
 
-  return response;
+  return NextResponse.redirect(
+    new URL(
+      "/login?message=" +
+        encodeURIComponent("رابط التحقق غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا."),
+      requestUrl.origin,
+    ),
+  );
 }

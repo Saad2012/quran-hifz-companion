@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Cloud, Download, LogIn, LogOut, RefreshCcw, Upload } from "lucide-react";
+import { Cloud, Download, LockKeyhole, LogIn, LogOut, RefreshCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -300,6 +300,12 @@ export function SettingsPage() {
                       >
                         <Cloud className="h-4 w-4" />
                         {cloudSync.isSyncing ? "جاري المزامنة..." : "مزامنة الآن"}
+                      </Button>
+                      <Button asChild type="button" variant="secondary">
+                        <Link href="/reset-password">
+                          <LockKeyhole className="h-4 w-4" />
+                          تغيير كلمة المرور
+                        </Link>
                       </Button>
                       <Button type="button" variant="ghost" onClick={() => void signOut()}>
                         <LogOut className="h-4 w-4" />

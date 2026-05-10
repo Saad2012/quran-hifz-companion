@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8f5ef;
+  --foreground: #1a2231;
+  --card: rgba(255, 255, 255, 0.78);
+  --surface: #fbfaf7;
+  --surface-soft: #f0e9dd;
+  --border: rgba(44, 59, 79, 0.1);
+  --muted-foreground: #6a7280;
+  --accent: #bc744a;
+  --accent-strong: #9c5e39;
+  --ring: rgba(188, 116, 74, 0.3);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-cairo);
+  --font-mono: var(--font-plex-mono);
+}
+
+[data-theme="sand"] {
+  --background: #f6efe4;
+  --foreground: #262321;
+  --card: rgba(255, 252, 247, 0.78);
+  --surface: #fff8ef;
+  --surface-soft: #efe3d4;
+  --border: rgba(99, 72, 45, 0.12);
+  --muted-foreground: #7b6e5b;
+  --accent: #b86f43;
+  --accent-strong: #8e542f;
+  --ring: rgba(184, 111, 67, 0.28);
+}
+
+[data-theme="night"] {
+  --background: #0f1724;
+  --foreground: #ecf0f6;
+  --card: rgba(16, 27, 42, 0.84);
+  --surface: #132135;
+  --surface-soft: #17283e;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted-foreground: #a6b4ca;
+  --accent: #d18b5e;
+  --accent-strong: #efad81;
+  --ring: rgba(209, 139, 94, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-cairo), sans-serif;
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: rgba(188, 116, 74, 0.22);
+}
+
+.recharts-tooltip-wrapper {
+  direction: rtl;
+}

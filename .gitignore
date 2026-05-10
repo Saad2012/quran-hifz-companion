@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.pnpm-store/
+.npm/
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build artifacts
+.next/
+out/
+build/
+dist/
+.turbo/
+.cache/
+vendor/cache/
+
+# Coverage and reports
+coverage/
+*.lcov
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Secrets and certificates
+*.pem
+*.key
+*.p12
+*.crt
+
+# Databases and dumps
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.dump
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.orig
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.history/
+
+# Deploy/platform
+.vercel/
+.playwright-mcp/
+
+# Generated TypeScript and local agent files
+*.tsbuildinfo
+next-env.d.ts
+AGENTS.md
+CLAUDE.md

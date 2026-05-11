@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ResumeSessionCard } from "@/features/dashboard/resume-session-card";
 import { FocusPreset, FocusSessionConsole } from "@/features/focus/focus-session-console";
 import { useHifzData } from "@/hooks/use-hifz-data";
 import { REVIEW_MODE_LABELS, SESSION_TYPE_LABELS, formatPageRange, formatMinutes, toDigitSystem } from "@/utils/pages";
@@ -97,6 +98,9 @@ export function FocusPage() {
         description="ابدأ من هنا عندما تريد تنفيذًا فعليًا: مؤقت، عداد تكرارات، اقتراح جاهز، وحفظ مباشر للجلسة مع مسار تعافٍ إذا كنت عائدًا بعد انقطاع."
         action={
           <div className="flex flex-col gap-3 sm:flex-row">
+            <Button asChild variant="secondary">
+              <Link href="/today">اليوم فقط</Link>
+            </Button>
             <Button asChild variant="secondary">
               <Link href="/review">خطة اليوم</Link>
             </Button>
@@ -209,6 +213,10 @@ export function FocusPage() {
           </CardContent>
         </Card>
       </div>
+
+      {dashboard.resumeSuggestion ? (
+        <ResumeSessionCard suggestion={dashboard.resumeSuggestion} numerals={data.settings.numerals} />
+      ) : null}
 
       <FocusSessionConsole presets={presets} />
 

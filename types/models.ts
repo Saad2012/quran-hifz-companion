@@ -285,6 +285,31 @@ export interface NextActionSuggestion {
   pageNumbers: number[];
 }
 
+export interface ResumeSuggestion {
+  title: string;
+  description: string;
+  cta: string;
+  pageNumbers: number[];
+  preset: Partial<Session>;
+}
+
+export interface TodayFocusItem {
+  id: string;
+  title: string;
+  detail: string;
+  estimatedMinutes: number;
+  pageNumbers: number[];
+  completed: boolean;
+}
+
+export interface TodayFocusSnapshot {
+  source: "recovery" | "review" | "weekly" | "empty";
+  title: string;
+  summary: string;
+  totalMinutes: number;
+  items: TodayFocusItem[];
+}
+
 export interface DashboardSnapshot {
   currentPage: number;
   completionRatio: number;
@@ -302,6 +327,8 @@ export interface DashboardSnapshot {
   reviewVolume: "low" | "balanced" | "high";
   smartAlerts: SmartAlert[];
   nextAction: NextActionSuggestion;
+  resumeSuggestion?: ResumeSuggestion;
+  todayFocus: TodayFocusSnapshot;
 }
 
 export interface MetricPoint {

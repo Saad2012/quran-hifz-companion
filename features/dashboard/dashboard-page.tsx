@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip as Rechart
 import {
   Activity,
   AlertTriangle,
+  ArrowLeft,
   CalendarClock,
   Layers3,
   PlayCircle,
@@ -19,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NextActionDialog } from "@/features/dashboard/next-action-dialog";
+import { ResumeSessionCard } from "@/features/dashboard/resume-session-card";
+import { TodayFocusPanel } from "@/features/dashboard/today-focus-panel";
 import { StatCard } from "@/components/stat-card";
 import { SessionFormDialog } from "@/features/sessions/session-form-dialog";
 import { useHifzData } from "@/hooks/use-hifz-data";
@@ -39,15 +42,21 @@ export function DashboardPage() {
       <PageHeader
         eyebrow="لوحة القيادة"
         title="صورة واضحة لمشروعك الآن"
-        description="تركيز اليوم هنا على ما وصلت إليه، وما ينبغي مراجعته الآن، وكيف يبدو المسار إذا استمريت بالإيقاع الحالي."
+        description="تركيز اليوم هنا على ما وصلت إليه، وما ينبغي مراجعته الآن، مع اختصارات مباشرة تمنعك من الضياع بين الأقسام حين تريد التنفيذ."
         action={
           <div className="flex flex-wrap gap-3">
-            <NextActionDialog />
             <Button asChild>
-              <Link href="/focus">وضع التركيز</Link>
+              <Link href={dashboard.nextAction.targetHref}>
+                ابدأ المهمة التالية
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
             </Button>
+            <Button asChild variant="secondary">
+              <Link href="/today">اليوم فقط</Link>
+            </Button>
+            <NextActionDialog />
             <SessionFormDialog preset={{ sessionType: "memorization", startPage: dashboard.currentPage + 1, endPage: dashboard.currentPage + 1 }}>
-              <Button variant="secondary">جلسة جديدة</Button>
+              <Button variant="ghost">جلسة جديدة</Button>
             </SessionFormDialog>
             <Button asChild variant="ghost">
               <Link href="/review">خطة المراجعة اليوم</Link>
@@ -55,6 +64,32 @@ export function DashboardPage() {
           </div>
         }
       />
+
+      <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
+        <TodayFocusPanel snapshot={dashboard.todayFocus} numerals={data.settings.numerals} />
+        {dashboard.resumeSuggestion ? (
+          <ResumeSessionCard suggestion={dashboard.resumeSuggestion} numerals={data.settings.numerals} />
+        ) : (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>أكمل من حيث توقفت</CardTitle>
+              <CardDescription>بمجرد تسجيل أول جلسة سيظهر هنا اقتراح تلقائي يعيدك مباشرةً إلى آخر نقطة كنت تعمل عليها.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SessionFormDialog
+                preset={{
+                  sessionType: "review",
+                  startPage: Math.max(1, dashboard.currentPage),
+                  endPage: Math.max(1, dashboard.currentPage),
+                  durationMinutes: 20,
+                }}
+              >
+                <Button className="w-full">سجّل أول جلسة</Button>
+              </SessionFormDialog>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       <Card className="overflow-hidden p-0">
         <div className="grid gap-0 xl:grid-cols-[1.5fr,1fr]">

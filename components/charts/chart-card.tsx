@@ -12,12 +12,12 @@ export function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="h-full">
+    <Card className="h-full min-w-0">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="min-w-0 overflow-hidden">{children}</CardContent>
     </Card>
   );
 }

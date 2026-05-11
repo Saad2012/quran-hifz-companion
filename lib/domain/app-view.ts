@@ -1,5 +1,9 @@
 import { TOTAL_QURAN_PAGES, getSurahByPage } from "@/data/quran-meta";
 import { buildAnalytics } from "@/lib/analytics";
+import {
+  buildResumeSuggestion,
+  buildTodayFocusSnapshot,
+} from "@/lib/domain/dashboard-guidance";
 import { buildNextActionSuggestion } from "@/lib/domain/next-action";
 import { buildRecoveryPlan } from "@/lib/domain/recovery-plan";
 import { buildReports } from "@/lib/domain/reports";
@@ -90,12 +94,22 @@ function buildDashboard(
 ): DashboardSnapshot {
   const memorizedPages = pageStates.filter((page) => page.memorized);
   const currentPage = memorizedPages.at(-1)?.pageNumber ?? 0;
+  const lastSession = [...data.sessions].sort((left, right) => {
+    const byDate = right.date.localeCompare(left.date);
+
+    if (byDate !== 0) {
+      return byDate;
+    }
+
+    return right.updatedAt.localeCompare(left.updatedAt);
+  })[0];
   const currentSegment = data.segments.find(
     (segment) => currentPage >= segment.startPage && currentPage <= segment.endPage,
   );
   const nextStop = data.stopSessions.find((stop) => !stop.completed);
   const estimatedCompletionDate = analytics.metrics.estimatedCompletionDate;
   const todayReviewPages = reviewEngine.todayReviewPlan[reviewEngine.recommendedMode].totalPages;
+  const todayPlanDay = weeklyPlanner.days.find((day) => day.isToday) ?? weeklyPlanner.days[0];
   const reviewVolume = todayReviewPages > 18 ? "high" : todayReviewPages > 10 ? "balanced" : "low";
   const projectHealth =
     reviewEngine.criticalPages.length > 8
@@ -115,7 +129,7 @@ function buildDashboard(
     weakPagesCount: reviewEngine.weakPages.length,
     projectHealth,
     currentStreak: analytics.metrics.currentStreak,
-    lastSession: [...data.sessions].sort((left, right) => right.date.localeCompare(left.date))[0],
+    lastSession,
     estimatedCompletionDate,
     reviewVolume,
   } as Omit<DashboardSnapshot, "smartAlerts" | "nextAction">;
@@ -127,11 +141,18 @@ function buildDashboard(
     analytics,
     recoveryPlan,
   );
+  const todayFocus = buildTodayFocusSnapshot({
+    recoveryPlan,
+    reviewTasks: reviewEngine.todayReviewPlan[reviewEngine.recommendedMode].tasks,
+    todayWeeklyTasks: todayPlanDay?.plannedTasks ?? [],
+  });
 
   return {
     ...baseDashboard,
     smartAlerts: buildSmartAlerts(baseDashboard, { analytics, reviewEngine, recoveryPlan }),
     nextAction,
+    resumeSuggestion: buildResumeSuggestion(lastSession),
+    todayFocus,
   };
 }
 

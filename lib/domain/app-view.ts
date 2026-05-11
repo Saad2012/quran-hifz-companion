@@ -1,6 +1,7 @@
 import { TOTAL_QURAN_PAGES, getSurahByPage } from "@/data/quran-meta";
 import { buildAnalytics } from "@/lib/analytics";
 import { buildNextActionSuggestion } from "@/lib/domain/next-action";
+import { buildRecoveryPlan } from "@/lib/domain/recovery-plan";
 import { buildReports } from "@/lib/domain/reports";
 import { buildReviewEngine } from "@/lib/domain/review-engine";
 import { buildWeakPageInsights } from "@/lib/domain/weak-pages";
@@ -15,15 +16,29 @@ import {
   SmartAlert,
   WeakPageInsight,
   WeeklyPlanner,
+  RecoveryPlan,
   DerivedAppData,
 } from "@/types";
 import { getTodayDateKey } from "@/utils/date";
 
 function buildSmartAlerts(
   dashboard: Omit<DashboardSnapshot, "smartAlerts" | "nextAction">,
-  derived: { analytics: AnalyticsBundle; reviewEngine: ReviewEngineOutput },
+  derived: {
+    analytics: AnalyticsBundle;
+    reviewEngine: ReviewEngineOutput;
+    recoveryPlan: RecoveryPlan;
+  },
 ): SmartAlert[] {
   const alerts: SmartAlert[] = [];
+
+  if (derived.recoveryPlan.isNeeded) {
+    alerts.push({
+      id: "recovery",
+      tone: "warning",
+      title: "خطة تعافٍ مقترحة",
+      message: `مرّ ${derived.recoveryPlan.gapDays} أيام منذ آخر جلسة، والأفضل الآن الدخول عبر وضع التركيز بدل العودة العشوائية.`,
+    });
+  }
 
   if (derived.reviewEngine.overduePages.length) {
     alerts.push({
@@ -71,6 +86,7 @@ function buildDashboard(
   analytics: AnalyticsBundle,
   weakPageInsights: WeakPageInsight[],
   weeklyPlanner: WeeklyPlanner,
+  recoveryPlan: RecoveryPlan,
 ): DashboardSnapshot {
   const memorizedPages = pageStates.filter((page) => page.memorized);
   const currentPage = memorizedPages.at(-1)?.pageNumber ?? 0;
@@ -109,11 +125,12 @@ function buildDashboard(
     weakPageInsights,
     weeklyPlanner,
     analytics,
+    recoveryPlan,
   );
 
   return {
     ...baseDashboard,
-    smartAlerts: buildSmartAlerts(baseDashboard, { analytics, reviewEngine }),
+    smartAlerts: buildSmartAlerts(baseDashboard, { analytics, reviewEngine, recoveryPlan }),
     nextAction,
   };
 }
@@ -128,6 +145,7 @@ export function deriveAppData(
   const reports = buildReports(data, analytics, reviewEngine);
   const weakPageInsights = buildWeakPageInsights(data, pageStates, todayDateKey);
   const weeklyPlanner = buildWeeklyPlanner(data, reviewEngine, todayDateKey);
+  const recoveryPlan = buildRecoveryPlan(data, reviewEngine, weeklyPlanner, todayDateKey);
 
   return {
     pageStates,
@@ -136,6 +154,7 @@ export function deriveAppData(
     reports,
     weakPageInsights,
     weeklyPlanner,
+    recoveryPlan,
     dashboard: buildDashboard(
       data,
       pageStates,
@@ -143,6 +162,7 @@ export function deriveAppData(
       analytics,
       weakPageInsights,
       weeklyPlanner,
+      recoveryPlan,
     ),
   };
 }

@@ -3,6 +3,7 @@ import {
   AnalyticsBundle,
   NextActionSuggestion,
   PersistedAppData,
+  RecoveryPlan,
   ReviewEngineOutput,
   WeakPageInsight,
   WeeklyPlanner,
@@ -15,6 +16,7 @@ export function buildNextActionSuggestion(
   weakPageInsights: WeakPageInsight[],
   weeklyPlanner: WeeklyPlanner,
   analytics: AnalyticsBundle,
+  recoveryPlan: RecoveryPlan,
   todayDateKey = getTodayDateKey(),
 ): NextActionSuggestion {
   const hasSessionToday = data.sessions.some((session) => session.date === todayDateKey);
@@ -23,14 +25,28 @@ export function buildNextActionSuggestion(
       .filter((session) => ["memorization", "mixed"].includes(session.sessionType))
       .sort((left, right) => right.date.localeCompare(left.date))[0]?.endPage ?? 0;
 
+  if (recoveryPlan.isNeeded) {
+    return {
+      id: "enter-focus-recovery",
+      title: "ادخل وضع التركيز وابدأ التعافي",
+      description: "أفضل خطوة الآن هي جلسة مركزة واحدة تعيدك للمسار بدل القفز بين الصفحات والشاشات.",
+      reason: recoveryPlan.summary,
+      targetHref: "/focus",
+      cta: "افتح وضع التركيز",
+      urgency: recoveryPlan.severity === "deep" ? "high" : "medium",
+      estimatedMinutes: recoveryPlan.days[0]?.totalMinutes ?? 20,
+      pageNumbers: recoveryPlan.days[0]?.tasks.flatMap((task) => task.pageNumbers).slice(0, 10) ?? [],
+    };
+  }
+
   if (reviewEngine.overduePages.length) {
     return {
       id: "rescue-overdue",
       title: "أنقذ الصفحات المتأخرة أولًا",
       description: "ابدأ الآن بجلسة مراجعة قصيرة للصفحات التي تجاوزت الحد الآمن.",
       reason: "لأن الصفحات المتأخرة هي أعلى نقطة خطر حاليًا وتؤثر على استقرار المشروع كله.",
-      targetHref: "/weak-pages",
-      cta: "افتح مركز الصفحات الضعيفة",
+      targetHref: "/focus",
+      cta: "ابدأ من وضع التركيز",
       urgency: "high",
       estimatedMinutes: 18,
       pageNumbers: reviewEngine.overduePages.slice(0, 6),
@@ -43,8 +59,8 @@ export function buildNextActionSuggestion(
       title: "ثبّت الصفحات الحرجة الآن",
       description: "لديك مجموعة حرجة تحتاج مرورًا مركزًا قبل أن تتحول إلى تأخر فعلي.",
       reason: "العدد الحرج الحالي مرتفع نسبيًا، والمرور عليها الآن أسهل من علاجها بعد أيام.",
-      targetHref: "/weak-pages",
-      cta: "اذهب إلى الصفحات الضعيفة",
+      targetHref: "/focus",
+      cta: "افتح وضع التركيز",
       urgency: "high",
       estimatedMinutes: 20,
       pageNumbers: reviewEngine.criticalPages.slice(0, 8),
@@ -57,8 +73,8 @@ export function buildNextActionSuggestion(
       title: "ابدأ خطة مراجعة اليوم",
       description: "أفضل خطوة الآن هي تنفيذ خطة اليوم بالوضع الذي أوصى به المحرك.",
       reason: "لا توجد جلسة مسجلة اليوم بعد، وخطة اليوم جاهزة بالفعل.",
-      targetHref: "/review",
-      cta: "افتح مراجعة اليوم",
+      targetHref: "/focus",
+      cta: "ابدأ جلسة مركزة",
       urgency: "medium",
       estimatedMinutes: reviewEngine.todayReviewPlan[reviewEngine.recommendedMode].tasks.reduce(
         (total, task) => total + task.estimatedMinutes,

@@ -251,6 +251,28 @@ export interface WeeklyPlanner {
   highlights: string[];
 }
 
+export interface RecoveryDay {
+  id: string;
+  date: string;
+  label: string;
+  title: string;
+  summary: string;
+  tasks: WeeklyPlanTask[];
+  totalPages: number;
+  totalMinutes: number;
+}
+
+export interface RecoveryPlan {
+  isNeeded: boolean;
+  gapDays: number;
+  severity: "steady" | "gentle" | "medium" | "deep";
+  headline: string;
+  summary: string;
+  recommendedMode: ReviewMode;
+  canResumeMemorization: boolean;
+  days: RecoveryDay[];
+}
+
 export interface NextActionSuggestion {
   id: string;
   title: string;
@@ -464,6 +486,7 @@ export interface DerivedAppData {
   reports: ReportView[];
   weakPageInsights: WeakPageInsight[];
   weeklyPlanner: WeeklyPlanner;
+  recoveryPlan: RecoveryPlan;
   dashboard: DashboardSnapshot;
 }
 

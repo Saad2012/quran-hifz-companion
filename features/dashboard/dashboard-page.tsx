@@ -43,6 +43,9 @@ export function DashboardPage() {
         action={
           <div className="flex flex-wrap gap-3">
             <NextActionDialog />
+            <Button asChild>
+              <Link href="/focus">وضع التركيز</Link>
+            </Button>
             <SessionFormDialog preset={{ sessionType: "memorization", startPage: dashboard.currentPage + 1, endPage: dashboard.currentPage + 1 }}>
               <Button variant="secondary">جلسة جديدة</Button>
             </SessionFormDialog>
@@ -117,6 +120,31 @@ export function DashboardPage() {
           </div>
         </div>
       </Card>
+
+      {derived.recoveryPlan.isNeeded ? (
+        <Card className="border-[rgba(188,116,74,0.24)]">
+          <CardHeader>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle>خطة تعافٍ جاهزة</CardTitle>
+                <CardDescription>{derived.recoveryPlan.summary}</CardDescription>
+              </div>
+              <Button asChild>
+                <Link href="/focus">افتح وضع التركيز</Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            {derived.recoveryPlan.days.slice(0, 3).map((day) => (
+              <div key={day.id} className="rounded-[22px] bg-[var(--surface-soft)] p-4">
+                <p className="text-sm text-[var(--muted-foreground)]">{day.label}</p>
+                <p className="mt-2 font-semibold">{day.title}</p>
+                <p className="mt-2 text-sm leading-7 text-[var(--muted-foreground)]">{day.summary}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

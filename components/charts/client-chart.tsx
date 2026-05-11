@@ -20,7 +20,7 @@ export function ClientChart({
   }, []);
 
   return (
-    <div className={cn("min-w-0", className)}>
+    <div className={cn("min-w-0 w-full", className)}>
       {mounted ? (
         children
       ) : (

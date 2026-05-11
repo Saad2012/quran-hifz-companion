@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   BarChart3,
   BookMarked,
@@ -17,10 +18,20 @@ import {
   ShieldAlert,
   Sparkles,
   TestTube2,
+  Menu,
+  PlayCircle,
   Waves,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useAuthSession } from "@/hooks/use-supabase-auth";
 import { useHifzData } from "@/hooks/use-hifz-data";
 import { cn } from "@/utils/cn";
@@ -30,6 +41,7 @@ const NAV_ITEMS = [
   { href: "/", label: "الرئيسية", icon: LayoutDashboard },
   { href: "/sessions", label: "الجلسات", icon: ScrollText },
   { href: "/review", label: "مراجعة اليوم", icon: Sparkles },
+  { href: "/focus", label: "وضع التركيز", icon: PlayCircle },
   { href: "/planner", label: "التخطيط الأسبوعي", icon: CalendarDays },
   { href: "/weak-pages", label: "الصفحات الضعيفة", icon: ShieldAlert },
   { href: "/segments", label: "المقاطع", icon: BookMarked },
@@ -41,16 +53,24 @@ const NAV_ITEMS = [
   { href: "/settings", label: "الإعدادات", icon: Settings2 },
 ];
 
+const MOBILE_PRIMARY_ITEMS = NAV_ITEMS.filter((item) =>
+  ["/", "/review", "/focus", "/sessions"].includes(item.href),
+);
+const MOBILE_MORE_ITEMS = NAV_ITEMS.filter(
+  (item) => !MOBILE_PRIMARY_ITEMS.some((primary) => primary.href === item.href),
+);
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { cloudSync, derived } = useHifzData();
   const { isConfigured, user, signOut } = useAuthSession();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(190,138,102,0.16),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(87,129,160,0.12),transparent_30%),linear-gradient(180deg,var(--background),var(--surface))]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1600px]">
-        <aside className="sticky top-0 hidden h-screen w-[300px] shrink-0 border-l border-[var(--border)] bg-[rgba(255,255,255,0.65)] p-6 backdrop-blur-xl xl:flex xl:flex-col">
+        <aside className="sticky top-0 hidden h-screen w-[300px] shrink-0 overflow-y-auto border-l border-[var(--border)] bg-[rgba(255,255,255,0.65)] p-6 backdrop-blur-xl xl:flex xl:flex-col">
           <div className="mb-8 space-y-2">
             <p className="text-xs font-semibold tracking-[0.32em] text-[var(--muted-foreground)]">QURAN HIFZ COMPANION</p>
             <h2 className="text-2xl font-semibold">رفيق حفظ القرآن</h2>
@@ -134,7 +154,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <h1 className="text-xl font-semibold">المشروع في {derived.dashboard.currentSurah}</h1>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1 xl:hidden">
-                {NAV_ITEMS.map((item) => {
+                {MOBILE_PRIMARY_ITEMS.map((item) => {
                   const active = pathname === item.href;
                   return (
                     <Link
@@ -156,7 +176,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 gap-2 rounded-[28px] border border-[var(--border)] bg-[rgba(255,255,255,0.92)] p-2 shadow-[0_18px_50px_rgba(15,23,42,0.16)] backdrop-blur-xl xl:hidden">
-        {NAV_ITEMS.slice(0, 5).map((item) => {
+        {MOBILE_PRIMARY_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
 
@@ -174,6 +194,60 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
+        <Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-[11px]",
+                MOBILE_MORE_ITEMS.some((item) => pathname === item.href)
+                  ? "bg-[var(--accent)] text-white"
+                  : "text-[var(--muted-foreground)]",
+              )}
+            >
+              <Menu className="mb-1 h-4 w-4" />
+              المزيد
+            </button>
+          </DialogTrigger>
+          <DialogContent className="top-auto bottom-3 right-1/2 max-h-[82vh] w-[min(94vw,720px)] translate-x-1/2 translate-y-0 overflow-y-auto rounded-[30px] p-5">
+            <DialogHeader>
+              <DialogTitle>كل أقسام المشروع</DialogTitle>
+              <DialogDescription>
+                على الهاتف حافظنا على شريط سفلي مختصر، وهنا تصل سريعًا إلى بقية الصفحات.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {MOBILE_MORE_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition",
+                      active
+                        ? "border-[var(--accent)] bg-[var(--surface-soft)]"
+                        : "border-[var(--border)] bg-[var(--card)]",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-4 sm:col-span-2">
+                <p className="text-sm font-medium text-[var(--foreground)]">المزامنة والحساب</p>
+                <p className="mt-2 text-sm leading-7 text-[var(--muted-foreground)]">
+                  {user?.email ?? (isConfigured ? "لم يتم تسجيل الدخول بعد." : "الوضع المحلي فقط.")}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-[var(--muted-foreground)]">{cloudSync.message}</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </nav>
     </div>
   );

@@ -1,0 +1,17 @@
+.git/
+.next/
+node_modules/
+.playwright-mcp/
+.serena/
+.slide-captures/
+.superpowers/
+.vercel/
+artifacts/
+coverage/
+docs/
+supabase/
+tests/
+*.log
+dashboard-home.png
+dashboard-home-stable.png
+PROJECT_STATUS.md

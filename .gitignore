@@ -85,3 +85,6 @@ AGENTS.md
 CLAUDE.md
 
 .vercel
+
+# Local Netlify folder
+.netlify

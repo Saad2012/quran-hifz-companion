@@ -82,7 +82,7 @@ export function SessionsPage() {
       {sessions.length ? (
         <div className="space-y-4">
           {sessions.map((session) => (
-            <Card key={session.id}>
+            <Card key={`${session.id}-${session.updatedAt}`}>
               <CardContent className="pt-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-3">

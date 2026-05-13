@@ -13,6 +13,7 @@ import {
 import { useSupabaseAuth } from "@/features/auth/provider";
 import { createSeedData } from "@/data/seed";
 import { deriveAppData } from "@/lib/domain/app-view";
+import { createEmptyProjectData } from "@/lib/project-reset";
 import { localStorageAdapter } from "@/lib/persistence/local-storage";
 import { reconcileSnapshots } from "@/lib/persistence/snapshot-reconcile";
 import { supabaseStorageAdapter } from "@/lib/persistence/supabase-storage";
@@ -444,11 +445,76 @@ export function HifzAppProvider({ children }: { children: React.ReactNode }) {
         localStorageAdapter.clear();
         setData(withUpdatedTimestamp(fresh));
       },
+      async resetProject(options) {
+        const nextData = createEmptyProjectData({
+          settings: options?.preserveSettings === false ? undefined : dataRef.current.settings,
+        });
+
+        localStorageAdapter.clear();
+        lastSyncedPayloadUpdatedAtRef.current = null;
+        setData(nextData);
+
+        if (!isConfigured || !user) {
+          setCloudSync(
+            createCloudSyncState({
+              isConfigured,
+              isAuthenticated: false,
+              isSyncing: false,
+              status: isConfigured ? "auth-required" : "local-only",
+              message: isConfigured
+                ? "تم تصفير المشروع محليًا. سجّل الدخول إن أردت رفع الحالة الجديدة إلى السحابة."
+                : "تم تصفير المشروع محليًا والبدء من جديد.",
+            }),
+          );
+          return true;
+        }
+
+        setCloudSync((current) =>
+          createCloudSyncState({
+            ...current,
+            isConfigured: true,
+            isAuthenticated: true,
+            isSyncing: true,
+            status: "syncing",
+            error: undefined,
+            message: "جاري تصفير المشروع محليًا وسحابيًا...",
+          }),
+        );
+
+        try {
+          const syncedAt = await supabaseStorageAdapter.save(user.id, nextData);
+          lastSyncedPayloadUpdatedAtRef.current = nextData.updatedAt;
+          setCloudSync(
+            createCloudSyncState({
+              isConfigured: true,
+              isAuthenticated: true,
+              isSyncing: false,
+              status: "synced",
+              lastSyncedAt: syncedAt ?? new Date().toISOString(),
+              message: "تم تصفير المشروع ورفع البداية الجديدة إلى السحابة.",
+            }),
+          );
+          return true;
+        } catch (error) {
+          setCloudSync(
+            createCloudSyncState({
+              isConfigured: true,
+              isAuthenticated: true,
+              isSyncing: false,
+              status: "error",
+              error: toErrorMessage(error),
+              message:
+                "تم تصفير المشروع محليًا، لكن تعذر تحديث النسخة السحابية الآن.",
+            }),
+          );
+          return false;
+        }
+      },
       syncNow() {
         return performCloudSync("auto");
       },
     }),
-    [cloudSync, commitData, data, derived, isHydrated, performCloudSync],
+    [cloudSync, commitData, data, derived, isConfigured, isHydrated, performCloudSync, user],
   );
 
   return <HifzContext.Provider value={value}>{children}</HifzContext.Provider>;

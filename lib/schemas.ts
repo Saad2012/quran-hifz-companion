@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { SESSION_REPETITIONS_MAX } from "@/lib/session-form";
+
 const weekdaySchema = z.number().int().min(0).max(6);
 
 export const settingsSchema = z.object({
@@ -28,7 +30,7 @@ export const sessionSchema = z
     endPage: z.number().int().min(1).max(604),
     pagesCount: z.number().int().min(0).max(604),
     durationMinutes: z.number().int().min(0).max(480),
-    repetitions: z.number().int().min(0).max(100),
+    repetitions: z.number().int().min(0).max(SESSION_REPETITIONS_MAX),
     qualityRating: z.number().int().min(1).max(5),
     difficultyRating: z.number().int().min(1).max(5),
     withTeacher: z.boolean(),

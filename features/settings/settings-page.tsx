@@ -1,15 +1,22 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Cloud, Download, LockKeyhole, LogIn, LogOut, RefreshCcw, Upload } from "lucide-react";
+import { AlertTriangle, Cloud, Download, LockKeyhole, LogIn, LogOut, RefreshCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -29,9 +36,11 @@ const AVAILABLE_CHARTS = [
 ];
 
 export function SettingsPage() {
-  const { cloudSync, data, updateSettings, importData, resetToSeed, syncNow } = useHifzData();
+  const { cloudSync, data, updateSettings, importData, resetProject, syncNow } = useHifzData();
   const { isConfigured, user, signOut } = useAuthSession();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [isResettingProject, setIsResettingProject] = useState(false);
   const form = useForm<UserSettings>({
     resolver: zodResolver(settingsSchema),
     defaultValues: data.settings,
@@ -344,17 +353,6 @@ export function SettingsPage() {
                   <Upload className="h-4 w-4" />
                   استيراد البيانات
                 </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    resetToSeed();
-                    toast.success("تمت إعادة تعيين التطبيق إلى بيانات البداية.");
-                  }}
-                >
-                  <RefreshCcw className="h-4 w-4" />
-                  إعادة تعيين
-                </Button>
                 <input ref={fileRef} hidden type="file" accept="application/json" onChange={importFile} />
               </div>
               <div className="rounded-[22px] bg-[var(--surface-soft)] p-4 text-sm leading-7 text-[var(--muted-foreground)]">
@@ -363,12 +361,83 @@ export function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="border-rose-200 bg-rose-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-rose-700">
+                <AlertTriangle className="h-5 w-5" />
+                تصفير المشروع
+              </CardTitle>
+              <CardDescription>
+                هذا الإجراء يبدأ المشروع من الصفر: يمسح الجلسات والاختبارات وملاحظات التجويد
+                والوقفات الحالية، مع الإبقاء على إعداداتك العامة كما هي.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[22px] bg-white/80 p-4 text-sm leading-7 text-rose-700">
+                <p>
+                  إذا كنت مسجلًا الدخول فسيتم تحديث النسخة السحابية أيضًا، وبالتالي ستظهر
+                  البداية الجديدة نفسها على Vercel وNetlify وأجهزتك الأخرى.
+                </p>
+              </div>
+              <Button type="button" variant="destructive" onClick={() => setResetDialogOpen(true)}>
+                <RefreshCcw className="h-4 w-4" />
+                تصفير المشروع والبدء من جديد
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex justify-end">
           <Button type="submit">حفظ الإعدادات</Button>
         </div>
       </form>
+
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تأكيد تصفير المشروع</DialogTitle>
+            <DialogDescription>
+              سيتم مسح كل نشاط المشروع الحالي والبدء من الصفر، بينما تبقى إعداداتك العامة
+              مثل الأيام والثيم والأرقام محفوظة.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-[22px] bg-rose-50 p-4 text-sm leading-7 text-rose-700">
+            <p>الإجراء يشمل الجلسات والاختبارات وملاحظات التجويد والوقفات، ولا يمكن التراجع عنه إلا عبر ملف تصدير سابق.</p>
+          </div>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setResetDialogOpen(false)}
+              disabled={isResettingProject}
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isResettingProject}
+              onClick={() => {
+                setIsResettingProject(true);
+                void resetProject({ preserveSettings: true }).then((success) => {
+                  setIsResettingProject(false);
+
+                  if (success) {
+                    setResetDialogOpen(false);
+                    toast.success("تم تصفير المشروع والبدء من جديد.");
+                    return;
+                  }
+
+                  toast.error("تم التصفير محليًا، لكن تحديث النسخة السحابية لم يكتمل الآن.");
+                });
+              }}
+            >
+              {isResettingProject ? "جاري التصفير..." : "نعم، صفّر المشروع"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

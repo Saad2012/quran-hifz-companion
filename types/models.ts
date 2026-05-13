@@ -537,5 +537,6 @@ export interface AppStoreValue {
   updateSettings: (settings: UserSettings) => void;
   importData: (payload: PersistedAppData) => void;
   resetToSeed: () => void;
+  resetProject: (options?: { preserveSettings?: boolean }) => Promise<boolean>;
   syncNow: () => Promise<boolean>;
 }

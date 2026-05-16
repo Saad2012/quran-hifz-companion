@@ -54,6 +54,9 @@ export function DashboardPage() {
             <Button asChild variant="secondary">
               <Link href="/today">اليوم فقط</Link>
             </Button>
+            <Button asChild variant="ghost">
+              <Link href="/new-design">جرّب التصميم الجديد</Link>
+            </Button>
             <NextActionDialog />
             <SessionFormDialog preset={{ sessionType: "memorization", startPage: dashboard.currentPage + 1, endPage: dashboard.currentPage + 1 }}>
               <Button variant="ghost">جلسة جديدة</Button>
